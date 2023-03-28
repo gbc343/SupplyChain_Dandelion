@@ -61,4 +61,61 @@ mod my_psp34 {
             }
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use ink_env::test;
+
+        #[test]
+        fn create_item_works() {
+            // given
+            let mut contract = SimpleSupplyChain::new();
+            let owner = test::get_caller();
+
+            // when
+            let item_result = contract.create_item("Item 1".into(), 10, owner);
+
+            // then
+            assert!(item_result.is_ok());
+
+            let item = item_result.unwrap();
+            assert_eq!(item.name, "Item 1");
+            assert_eq!(item.quantity, 10);
+            assert_eq!(item.owner, owner);
+
+            let retrieved_item_result = contract.get_item(0);
+            assert!(retrieved_item_result.is_ok());
+
+            let retrieved_item = retrieved_item_result.unwrap();
+            assert_eq!(retrieved_item, item);
+        }
+
+        #[test]
+        fn get_item_works() {
+            // given
+            let mut contract = SimpleSupplyChain::new();
+            let owner = test::get_caller();
+
+            let item = Item {
+                name: "Item 2".into(),
+                quantity: 5,
+                owner,
+                previous_owner: None,
+                location: "Location 1".into(),
+            };
+
+            contract.items.insert(0, item.clone());
+
+            // when
+            let retrieved_item_result = contract.get_item(0);
+
+            // then
+            assert!(retrieved_item_result.is_ok());
+
+            let retrieved_item = retrieved_item_result.unwrap();
+            assert_eq!(retrieved_item, item);
+        }
+    }
+
 }
